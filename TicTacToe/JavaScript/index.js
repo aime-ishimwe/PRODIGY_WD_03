@@ -10,85 +10,124 @@ const winConditions = [
     [2,5,8],
     [0,4,8],
     [2,4,6]
-
 ];
 
 let options = ["","","","","","","","",""];
 let currentPlayer = "X";
-let running = false;  
+let running = false;
+let gameMode = "PvP"; // Default to Player vs Player
 
 initializeGame();
 
-//function to begin the game 
+// Function to initialize the game
 function initializeGame(){
+    // Mode buttons
+    document.querySelector("#playerVsPlayer").addEventListener("click", () => setGameMode("PvP"));
+    document.querySelector("#playerVsComputer").addEventListener("click", () => setGameMode("PvC"));
+
     cells.forEach(cell => cell.addEventListener("click", cellClicked));
     btnRestart.addEventListener("click", restartGame);
     statusText.textContent = `${currentPlayer}'s turn`;
     running = true;
 }
 
+// Function to set the game mode
+function setGameMode(mode) {
+    gameMode = mode;
+    options = ["","","","","","","","",""];
+    currentPlayer = "X";
+    statusText.textContent = `${currentPlayer}'s turn`;
+    cells.forEach(cell => cell.textContent = "");
+    running = true;
 
-//function to handle what hapens when a cell is clicked
-function cellClicked(){
-    const cellIndex = this.getAttribute("cellIndex");
-    if(options[cellIndex] != "" || !running){
-        return;
-    }
-    updateCell(this, cellIndex);
-    checkWinner();
+    // Hide the game mode buttons once a mode is selected
+    document.querySelector("#gameMode").style.display = "none";
 }
 
-//fuction to update the cell after its been clicked
+// Function to handle what happens when a cell is clicked
+function cellClicked(){
+    const cellIndex = this.getAttribute("cellIndex");
+    if(options[cellIndex] !== "" || !running || (currentPlayer === "O" && gameMode === "PvC")){
+        return; // Prevent the player from clicking while it's the computer's turn
+    }
+    updateCell(this, cellIndex);
+    if (!checkWinner()) {
+        changePlayer();
+        if (gameMode === "PvC" && running && currentPlayer === "O") {
+            setTimeout(computerMove, 500); // Simulate computer thinking
+        }
+    }
+}
+
+// Function to update the cell after it's been clicked
 function updateCell(cell, index){
     options[index] = currentPlayer;
     cell.textContent = currentPlayer;
 }
 
-//function to change to next player after each turn
+// Function to change to the next player after each turn
 function changePlayer(){
-    currentPlayer = (currentPlayer=="X") ? "O" : "X";
+    currentPlayer = (currentPlayer === "X") ? "O" : "X";
     statusText.textContent = `${currentPlayer}'s turn`;
 }
 
-
-//function to determine if there is a  winner is or if its a draw
+// Function to determine if there is a winner or if it's a draw
 function checkWinner(){
     let roundWon = false;
-    for( let i=0; i<winConditions.length; i++){
+    for( let i = 0; i < winConditions.length; i++){
         const condition = winConditions[i];
         const cellA = options[condition[0]];
         const cellB = options[condition[1]];
         const cellC = options[condition[2]];
-        // const cellA = options[condition[0]];
-        // const cellA = options[condition[0]];
-        if(cellA == "" || cellB ==  "" || cellC == ""){
+        
+        if(cellA === "" || cellB === "" || cellC === ""){
             continue;
         }
-        if(cellA == cellB && cellB ==  cellC){
+        if(cellA === cellB && cellB === cellC){
             roundWon = true;
             break;
         }
     }
     if(roundWon){
-        statusText.textContent =  `${currentPlayer} wins!`;
+        statusText.textContent = `${currentPlayer} wins!`;
         running = false;
+        return true;
     }
     else if (!options.includes("")){
-        statusText.textContent =  `Draw`;
+        statusText.textContent = `Draw`;
         running = false;
+        return true;
     }
-    else{
-        changePlayer();
+    return false;
+}
+
+// Function to make a move for the computer (PvC)
+function computerMove() {
+    // Get the list of available cells
+    const availableCells = options.reduce((acc, val, index) => {
+        if (val === "") acc.push(index);
+        return acc;
+    }, []);
+
+    // Randomly select one of the available cells for the computer
+    const randomCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+    options[randomCell] = "O"; // Computer's mark
+    cells[randomCell].textContent = "O";
+
+    // Check if the computer won
+    if (!checkWinner()) {
+        changePlayer(); // Switch turn back to the player
     }
 }
 
-
-//function to restart the game when the restat button is pressed
+// Function to restart the game when the restart button is pressed
 function restartGame(){
-    currentPlayer = "X";
     options = ["","","","","","","","",""];
+    currentPlayer = "X";
     statusText.textContent = `${currentPlayer}'s turn`;
     cells.forEach(cell => cell.textContent = "");
     running = true;
-}
 
+    // Show the game mode buttons again when the game is restarted
+    document.querySelector("#gameMode").style.display = "flex";
+}

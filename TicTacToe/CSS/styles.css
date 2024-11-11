@@ -82,3 +82,31 @@ h1 {
 #btnRestart:hover {
     background-color: #2980b9;
 }
+/* Game mode buttons */
+#gameMode {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#gameMode button {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #2ecc71;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    font-family: Arial, sans-serif;
+}
+
+#gameMode button:hover {
+    background-color: #27ae60;
+    transform: scale(1.1);
+}
+
+#gameMode button:focus {
+    outline: none;
+}
